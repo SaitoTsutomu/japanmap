@@ -1,0 +1,10 @@
+.DS_Store
+.ipynb_checkpoints/
+Untitled.ipynb
+__pycache__/
+dist/
+.venv/
+.vscode/
+*.egg-info/
+.python-version
+memo.txt
