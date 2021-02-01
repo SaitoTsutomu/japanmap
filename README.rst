@@ -12,7 +12,7 @@
 
 Requirements
 ------------
-* Python 3, Numpy
+* Python 3.8-3.9, Pillow, Numpy, Open-CV
 
 Features
 --------
