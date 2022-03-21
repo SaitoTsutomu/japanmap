@@ -29,7 +29,7 @@ groups = {
 
 def picture(dic=None, rate=1):
     """ラスターデータ"""
-    from cv2 import imread, floodFill
+    from cv2 import floodFill, imread
     from PIL.ImageColor import getrgb
 
     pos = [
@@ -46,11 +46,7 @@ def picture(dic=None, rate=1):
         for k, v in dic.items():
             i = k if isinstance(k, int) else pref_code(k)
             if 1 <= i <= 47:
-                c = (
-                    tuple(int(t * rate) for t in v)
-                    if isinstance(v, tuple)
-                    else getrgb(v)
-                )
+                c = tuple(int(t * rate) for t in v) if isinstance(v, tuple) else getrgb(v)
                 floodFill(p, None, (pos[i][0] * 10, pos[i][1] * 10), c)
     return p
 
@@ -77,26 +73,26 @@ def get_data(move_hokkaido=False, move_okinawa=False, rough=False):
     return qp, qo
 
 
-def is_faced2sea(ip):
+def is_faced2sea(ip, qpqo=None):
     """県庁所在地を含むエリアが海に面するか"""
     assert 1 <= ip <= 47, "Must be 1 <= ip <= 47"
-    qp, qo = get_data()
+    qp, qo = qpqo if qpqo else get_data()
     return any([i[0] == 0 for i in qo[ip - 1]])
 
 
-def is_sandwiched2sea(ip):
+def is_sandwiched2sea(ip, qpqo=None):
     """県庁所在地を含むエリアが海に挟まれるか"""
     assert 1 <= ip <= 47, "Must be 1 <= ip <= 47"
-    qp, qo = get_data()
+    qp, qo = qpqo if qpqo else get_data()
     return sum([i[0] == 0 for i in qo[ip - 1]]) > 1
 
 
-def adjacent(ip=None):
+def adjacent(ip=None, qpqo=None):
     """県庁所在地を含むエリアが隣接する県コード"""
     if ip is None:
-        return [(i, j) for i in range(1, 48) for j in adjacent(i)]
+        return [(i, j) for i in range(1, 48) for j in adjacent(i, qpqo)]
     assert 1 <= ip <= 47, "Must be 1 <= ip <= 47"
-    qp, qo = get_data()
+    qp, qo = qpqo if qpqo else get_data()
     return sorted([cd for cd, _ in qo[ip - 1] if cd])
 
 
@@ -106,9 +102,7 @@ def pref_points(qpqo=None, rough=False):
     return [[qp[i][0] for _, ls in qo[k] for i in ls] for k in range(len(qo))]
 
 
-def pref_map(
-    ips, cols=None, width=1, qpqo=None, rough=False, tostr=False, ratio=(0.812, -1)
-):
+def pref_map(ips, cols=None, width=1, qpqo=None, rough=False, tostr=False, ratio=(0.812, -1)):
     """ベクトルデータ(SVG)"""
     from IPython.display import SVG
 
@@ -119,10 +113,7 @@ def pref_map(
             "lime olive yellow orange orangered maroon".split()
         )
     elif isinstance(cols, str) and cols == "gray":
-        cols = [
-            "#%02x%02x%02x" % ((i * 18 + 32,) * 3)
-            for i in [1, 8, 5, 10, 3, 0, 4, 7, 2, 9, 6]
-        ]
+        cols = ["#%02x%02x%02x" % ((i * 18 + 32,) * 3) for i in [1, 8, 5, 10, 3, 0, 4, 7, 2, 9, 6]]
     pnts = pref_points(qpqo, rough)
     pp = [[[i[0] * ratio[0], i[1] * ratio[1]] for i in pnts[ip - 1]] for ip in ips]
     ppp = np.array(sum(pp, []))
@@ -136,10 +127,8 @@ def pref_map(
         )
         for i, p in enumerate(pp)
     )
-    s = (
-        '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 %d 1">%s</svg>'
-        % (width, s)
-    )
+    tpl = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 %d 1">%s</svg>'
+    s = tpl % (width, s)
     return s if tostr else SVG(s)
 
 
@@ -148,9 +137,7 @@ def inflate(qp, qo, k, pnts, me, df):
         if i == 0:
             continue
         for k in range(1, len(ls) - 1):
-            df[ls[k]] += (
-                (qp[ls[k - 1]][0] + qp[ls[k + 1]][0]) / 2 - qp[ls[k]][0]
-            ) * 0.05
+            df[ls[k]] += ((qp[ls[k - 1]][0] + qp[ls[k + 1]][0]) / 2 - qp[ls[k]][0]) * 0.05
 
 
 def trans_area(target, qpqo=None, niter=20, alpha=0.1):
@@ -203,9 +190,7 @@ def distance(x1, y1, x2, y2):
     rx1, ry1, rx2, ry2 = np.radians([x1, y1, x2, y2])
     p1 = np.arctan(rp / rq * np.tan(ry1))
     p2 = np.arctan(rp / rq * np.tan(ry2))
-    an = np.arccos(
-        np.sin(p1) * np.sin(p2) + np.cos(p1) * np.cos(p2) * np.cos(rx1 - rx2)
-    )
+    an = np.arccos(np.sin(p1) * np.sin(p2) + np.cos(p1) * np.cos(p2) * np.cos(rx1 - rx2))
     ca = (np.sin(an) - an) * (np.sin(p1) + np.sin(p2)) ** 2 / np.cos(an / 2) ** 2
     cb = (np.sin(an) + an) * (np.sin(p1) - np.sin(p2)) ** 2 / np.sin(an / 2) ** 2
     return rq * (an + (rq - rp) / rq / 8 * (ca - cb))
