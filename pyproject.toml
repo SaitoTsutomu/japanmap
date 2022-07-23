@@ -2,7 +2,7 @@
 authors = ["SaitoTsutomu <tsutomu7@hotmail.co.jp>"]
 classifiers = [
   "Development Status :: 1 - Planning",
-  "License :: OSI Approved :: MIT License",
+  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python",
   "Topic :: Software Development",
   "Topic :: Scientific/Engineering",
@@ -10,25 +10,24 @@ classifiers = [
 description = "`japanmap` is a package for Japanese map."
 homepage = "https://github.com/SaitoTsutomu/japanmap"
 include = ['japan.pkl', 'japan0.16.pkl', 'japan.png']
-license = "MIT"
+license = "Apache-2.0"
 name = "japanmap"
 readme = "README.rst"
-version = "0.1.0"
+version = "0.2.0"
 
 [tool.poetry.dependencies]
-Pillow = "^9.0.1"
-numpy = "^1.22.3"
-opencv-python = "^4.5.5"
-python = "^3.9"
+Pillow = "^9.2"
+opencv-python = "^4.6"
+python = "^3.10"
 
 [tool.poetry.dev-dependencies]
-black = "^22.1.0"
-flake8 = "^4.0.1"
-isort = "^5.10.1"
+black = "^22.6"
+flake8 = "^4.0"
+isort = "^5.10"
 jupyter = "^1.0.0"
-matplotlib = "^3.5.1"
-mypy = "^0.941"
-pytest = "^5.2"
+matplotlib = "^3.5.2"
+mypy = "^0.971"
+pytest = "^7.1"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
