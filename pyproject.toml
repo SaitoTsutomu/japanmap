@@ -16,17 +16,17 @@ readme = "README.rst"
 version = "0.3.1"
 
 [tool.poetry.dependencies]
-opencv-python = "^4.8"
-pillow = "^10.0"
+opencv-python = "^4.9"
+pillow = "^10.2"
 python = "^3.11"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.7"
-flake8 = "^6.1"
-isort = "^5.12"
+black = "^23.12"
+flake8 = "^7.0"
+isort = "^5.13"
 jupyterlab = "^4.0"
-matplotlib = "^3.7"
-mypy = "^1.5"
+matplotlib = "^3.8"
+mypy = "^1.8"
 pytest = "^7.4"
 
 [build-system]
