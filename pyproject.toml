@@ -13,21 +13,17 @@ include = ['japan.pkl', 'japan0.16.pkl', 'japan.png']
 license = "Apache-2.0"
 name = "japanmap"
 readme = "README.rst"
-version = "0.3.1"
+version = "0.3.2"
 
 [tool.poetry.dependencies]
-opencv-python = "^4.9"
-pillow = "^10.2"
-python = "^3.11"
+opencv-python = "^4.10"
+pillow = "^10.4"
+python = ">=3.11"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.12"
-flake8 = "^7.0"
-isort = "^5.13"
-jupyterlab = "^4.0"
-matplotlib = "^3.8"
-mypy = "^1.8"
-pytest = "^7.4"
+jupyterlab = "^4.2"
+matplotlib = "^3.9"
+pytest = "^8.2"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
