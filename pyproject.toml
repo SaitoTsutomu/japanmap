@@ -1,5 +1,5 @@
-[tool.poetry]
-authors = ["SaitoTsutomu <tsutomu7@hotmail.co.jp>"]
+[project]
+authors = [{name = "Saito Tsutomu", email = "tsutomu7@hotmail.co.jp"}]
 classifiers = [
   "Development Status :: 1 - Planning",
   "License :: OSI Approved :: Apache Software License",
@@ -7,24 +7,53 @@ classifiers = [
   "Topic :: Software Development",
   "Topic :: Scientific/Engineering",
 ]
+dependencies = [
+  "opencv-python>=4.10.0.84",
+  "pillow>=10.4.0",
+]
 description = "`japanmap` is a package for Japanese map."
-homepage = "https://github.com/SaitoTsutomu/japanmap"
 include = ['japan.pkl', 'japan0.16.pkl', 'japan.png']
-license = "Apache-2.0"
+license = {text = "Apache-2.0"}
 name = "japanmap"
-readme = "README.rst"
-version = "0.3.2"
+readme = "README.md"
+requires-python = ">=3.12"
+version = "0.4.0"
 
-[tool.poetry.dependencies]
-opencv-python = "^4.10"
-pillow = "^10.4"
-python = ">=3.11"
+[project.urls]
+homepage = "https://github.com/SaitoTsutomu/japanmap"
 
-[tool.poetry.group.dev.dependencies]
-jupyterlab = "^4.2"
-matplotlib = "^3.9"
-pytest = "^8.2"
+[tool.uv]
+dev-dependencies = [
+  "jupyterlab>=4.2.5",
+  "matplotlib>=3.9.2",
+  "pytest>=8.3.2",
+]
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.ruff]
+src = ["src"]
+
+[tool.ruff.lint]
+ignore = ["E501"]
+select = [
+  "F", # Pyflakes https://docs.astral.sh/ruff/rules/#pyflakes-f
+  "E", # pycodestyle Error https://docs.astral.sh/ruff/rules/#error-e
+  "W", # pycodestyle Warning https://docs.astral.sh/ruff/rules/#warning-w
+  "C90", # mccabe https://docs.astral.sh/ruff/rules/#mccabe-c90
+  "I", # isort https://docs.astral.sh/ruff/rules/#isort-i
+  "N", # pep8-naming https://docs.astral.sh/ruff/rules/#pep8-naming-n
+  "UP", # pyupgrade https://docs.astral.sh/ruff/rules/#pyupgrade-up
+  "YTT", # flake8-2020 https://docs.astral.sh/ruff/rules/#flake8-2020-ytt
+  "B", # flake8-bugbear https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
+  "A", # flake8-builtins https://docs.astral.sh/ruff/rules/#flake8-builtins-a
+  "RUF", # Ruff-specific rules https://docs.astral.sh/ruff/rules/#ruff-specific-rules-ruf
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
 
 [build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core"]
+build-backend = "hatchling.build"
+requires = ["hatchling"]

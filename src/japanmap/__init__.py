@@ -1,9 +1,10 @@
+from itertools import chain
 from pathlib import Path
 
 import numpy as np
 
 # see pyproject.toml
-__version__ = "0.0.22"
+__version__ = "0.4.0"
 __author__ = "Saito Tsutomu <tsutomu7@hotmail.co.jp>"
 
 pref_names = (
@@ -108,25 +109,16 @@ def pref_map(ips, cols=None, width=1, qpqo=None, rough=False, tostr=False, ratio
 
     assert all(1 <= ip <= 47 for ip in ips), "Must be 1 <= ip <= 47"
     if cols is None:
-        cols = (
-            "red fuchsia purple navy blue teal aqua green "
-            "lime olive yellow orange orangered maroon".split()
-        )
+        cols = "red fuchsia purple navy blue teal aqua green " "lime olive yellow orange orangered maroon".split()
     elif isinstance(cols, str) and cols == "gray":
         cols = ["#%02x%02x%02x" % ((i * 18 + 32,) * 3) for i in [1, 8, 5, 10, 3, 0, 4, 7, 2, 9, 6]]
     pnts = pref_points(qpqo, rough)
     pp = [[[i[0] * ratio[0], i[1] * ratio[1]] for i in pnts[ip - 1]] for ip in ips]
-    ppp = np.array(sum(pp, []))
+    ppp = np.array(list(chain(*pp)))
     mx, mn = np.nanmax(ppp, 0), np.nanmin(ppp, 0)
     mx = max(mx - mn)
-    s = "".join(
-        '<path fill="%s" d="%s"/>'
-        % (
-            cols[i % len(cols)],
-            "M" + " ".join(["L%g,%g" % (x, y) for x, y in (p - mn) / mx])[1:] + " Z",
-        )
-        for i, p in enumerate(pp)
-    )
+    _cnv = lambda p: "M" + " ".join(["L%g,%g" % (x, y) for x, y in (p - mn) / mx])[1:] + " Z"  # noqa: E731, UP031
+    s = "".join(f'<path fill="{cols[i % len(cols)]}" d="{_cnv(p)}"/>' for i, p in enumerate(pp))
     tpl = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 %d 1">%s</svg>'
     s = tpl % (width, s)
     return s if tostr else SVG(s)
@@ -155,7 +147,7 @@ def trans_area(target, qpqo=None, niter=20, alpha=0.1):
     assert len(aa) == len(target), "Must be same size."
     target = np.array(target)
     target = target / target.mean() * aa
-    for h in range(niter):
+    for _ in range(niter):
         pnts = pref_points((qp, qo))
         me = [np.mean(pp, 0) for pp in pnts]
         df = np.zeros((len(qp), 2))
@@ -163,7 +155,7 @@ def trans_area(target, qpqo=None, niter=20, alpha=0.1):
             inflate(qp, qo, k, pnts, me, df)
             a = area(qp, qo, k)
             r = (t - a) / a * alpha
-            for ad, ls in qo[k]:
+            for _, ls in qo[k]:
                 zz = np.array([qp[j][0] for j in ls[:-1]]) - me[k]
                 rd = np.sqrt((zz * zz).sum(1))
                 if k == 0:
@@ -185,8 +177,8 @@ def area(qp, qo, k):
 
 
 def distance(x1, y1, x2, y2):
-    """緯度経度→距離（km）"""
-    rp, rq = 6356.752, 6378.137  # 極半径、赤道半径（km）
+    """緯度経度→距離(km)"""
+    rp, rq = 6356.752, 6378.137  # 極半径、赤道半径(km)
     rx1, ry1, rx2, ry2 = np.radians([x1, y1, x2, y2])
     p1 = np.arctan(rp / rq * np.tan(ry1))
     p2 = np.arctan(rp / rq * np.tan(ry2))
