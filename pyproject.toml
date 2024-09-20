@@ -16,8 +16,8 @@ include = ['japan.pkl', 'japan0.16.pkl', 'japan.png']
 license = {text = "Apache-2.0"}
 name = "japanmap"
 readme = "README.md"
-requires-python = ">=3.12"
-version = "0.5.0"
+requires-python = ">=3.11"
+version = "0.5.1"
 
 [project.urls]
 homepage = "https://github.com/SaitoTsutomu/japanmap"
