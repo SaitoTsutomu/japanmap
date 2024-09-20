@@ -1,11 +1,11 @@
-from itertools import chain
+import pickle
+import typing
+from itertools import chain, pairwise
 from pathlib import Path
 
 import numpy as np
 
-# see pyproject.toml
-__version__ = "0.4.0"
-__author__ = "Saito Tsutomu <tsutomu7@hotmail.co.jp>"
+NUM_PREF: typing.Final[int] = 47
 
 pref_names = (
     "_ 北海道 青森県 岩手県 宮城県 秋田県 山形県 福島県 茨城県 栃木県 "
@@ -30,8 +30,8 @@ groups = {
 
 def picture(dic=None, rate=1):
     """ラスターデータ"""
-    from cv2 import floodFill, imread
-    from PIL.ImageColor import getrgb
+    from cv2 import floodFill, imread  # noqa: PLC0415
+    from PIL.ImageColor import getrgb  # noqa: PLC0415
 
     pos = [
         eval(s)
@@ -46,7 +46,7 @@ def picture(dic=None, rate=1):
     if hasattr(dic, "items"):
         for k, v in dic.items():
             i = k if isinstance(k, int) else pref_code(k)
-            if 1 <= i <= 47:
+            if 1 <= i <= NUM_PREF:
                 c = tuple(int(t * rate) for t in v) if isinstance(v, tuple) else getrgb(v)
                 floodFill(p, None, (pos[i][0] * 10, pos[i][1] * 10), c)
     return p
@@ -57,12 +57,11 @@ def pref_code(s):
     return pref_.get(s.rstrip("都道府県"), 0)
 
 
-def get_data(move_hokkaido=False, move_okinawa=False, rough=False):
+def get_data(move_hokkaido=False, move_okinawa=False, rough=False):  # noqa: FBT002
     """境界リストと県別の(隣接県,境界index)のリスト"""
-    import pickle
 
-    pklfile = "japan0.16.pkl" if rough else "japan.pkl"
-    with open(Path(__file__).parent / pklfile, "rb") as fp:
+    pkl_file = "japan0.16.pkl" if rough else "japan.pkl"
+    with (Path(__file__).parent / pkl_file).open("rb") as fp:
         qp, qo = pickle.load(fp)
         qp = [list(p) for p in qp]
     if move_hokkaido:
@@ -76,43 +75,43 @@ def get_data(move_hokkaido=False, move_okinawa=False, rough=False):
 
 def is_faced2sea(ip, qpqo=None):
     """県庁所在地を含むエリアが海に面するか"""
-    assert 1 <= ip <= 47, "Must be 1 <= ip <= 47"
-    qp, qo = qpqo if qpqo else get_data()
-    return any([i[0] == 0 for i in qo[ip - 1]])
+    assert 1 <= ip <= NUM_PREF, f"Must be 1 <= ip <= {NUM_PREF}"
+    _, qo = qpqo or get_data()
+    return any(i[0] == 0 for i in qo[ip - 1])
 
 
 def is_sandwiched2sea(ip, qpqo=None):
     """県庁所在地を含むエリアが海に挟まれるか"""
-    assert 1 <= ip <= 47, "Must be 1 <= ip <= 47"
-    qp, qo = qpqo if qpqo else get_data()
-    return sum([i[0] == 0 for i in qo[ip - 1]]) > 1
+    assert 1 <= ip <= NUM_PREF, f"Must be 1 <= ip <= {NUM_PREF}"
+    _, qo = qpqo or get_data()
+    return sum(i[0] == 0 for i in qo[ip - 1]) > 1
 
 
 def adjacent(ip=None, qpqo=None):
     """県庁所在地を含むエリアが隣接する県コード"""
     if ip is None:
         return [(i, j) for i in range(1, 48) for j in adjacent(i, qpqo)]
-    assert 1 <= ip <= 47, "Must be 1 <= ip <= 47"
-    qp, qo = qpqo if qpqo else get_data()
+    assert 1 <= ip <= NUM_PREF, f"Must be 1 <= ip <= {NUM_PREF}"
+    _, qo = qpqo or get_data()
     return sorted([cd for cd, _ in qo[ip - 1] if cd])
 
 
-def pref_points(qpqo=None, rough=False):
+def pref_points(qpqo=None, *, rough=False):
     """県の境界(index list)のリスト"""
-    qp, qo = qpqo if qpqo else get_data(True, True, rough)
+    qp, qo = qpqo or get_data(move_hokkaido=True, move_okinawa=True, rough=rough)
     return [[qp[i][0] for _, ls in qo[k] for i in ls] for k in range(len(qo))]
 
 
-def pref_map(ips, cols=None, width=1, qpqo=None, rough=False, tostr=False, ratio=(0.812, -1)):
+def pref_map(ips, cols=None, width=1, qpqo=None, *, rough=False, tostr=False, ratio=(0.812, -1)):
     """ベクトルデータ(SVG)"""
-    from IPython.display import SVG
+    from IPython.display import SVG  # noqa: PLC0415
 
-    assert all(1 <= ip <= 47 for ip in ips), "Must be 1 <= ip <= 47"
+    assert all(1 <= ip <= NUM_PREF for ip in ips), f"Must be 1 <= ip <= {NUM_PREF}"
     if cols is None:
-        cols = "red fuchsia purple navy blue teal aqua green " "lime olive yellow orange orangered maroon".split()
+        cols = "red fuchsia purple navy blue teal aqua green lime olive yellow orange orangered maroon".split()
     elif isinstance(cols, str) and cols == "gray":
         cols = ["#%02x%02x%02x" % ((i * 18 + 32,) * 3) for i in [1, 8, 5, 10, 3, 0, 4, 7, 2, 9, 6]]
-    pnts = pref_points(qpqo, rough)
+    pnts = pref_points(qpqo, rough=rough)
     pp = [[[i[0] * ratio[0], i[1] * ratio[1]] for i in pnts[ip - 1]] for ip in ips]
     ppp = np.array(list(chain(*pp)))
     mx, mn = np.nanmax(ppp, 0), np.nanmin(ppp, 0)
@@ -124,12 +123,12 @@ def pref_map(ips, cols=None, width=1, qpqo=None, rough=False, tostr=False, ratio
     return s if tostr else SVG(s)
 
 
-def inflate(qp, qo, k, pnts, me, df):
+def inflate(qp, qo, k, dif):
     for i, ls in qo[k]:
         if i == 0:
             continue
-        for k in range(1, len(ls) - 1):
-            df[ls[k]] += ((qp[ls[k - 1]][0] + qp[ls[k + 1]][0]) / 2 - qp[ls[k]][0]) * 0.05
+        for j in range(1, len(ls) - 1):
+            dif[ls[j]] += ((qp[ls[j - 1]][0] + qp[ls[j + 1]][0]) / 2 - qp[ls[j]][0]) * 0.05
 
 
 def trans_area(target, qpqo=None, niter=20, alpha=0.1):
@@ -141,7 +140,7 @@ def trans_area(target, qpqo=None, niter=20, alpha=0.1):
     niter: number of iteration
     alpha: ratio of change
     """
-    qp, qo = qpqo if qpqo else get_data(True, True)
+    qp, qo = qpqo or get_data(move_hokkaido=True, move_okinawa=True)
     qp = [[np.array(p[0]), p[1]] for p in qp]
     aa = [area(qp, qo, k) for k in range(len(qo))]
     assert len(aa) == len(target), "Must be same size."
@@ -150,9 +149,9 @@ def trans_area(target, qpqo=None, niter=20, alpha=0.1):
     for _ in range(niter):
         pnts = pref_points((qp, qo))
         me = [np.mean(pp, 0) for pp in pnts]
-        df = np.zeros((len(qp), 2))
+        dif = np.zeros((len(qp), 2))
         for k, t in enumerate(target):
-            inflate(qp, qo, k, pnts, me, df)
+            inflate(qp, qo, k, dif)
             a = area(qp, qo, k)
             r = (t - a) / a * alpha
             for _, ls in qo[k]:
@@ -161,16 +160,14 @@ def trans_area(target, qpqo=None, niter=20, alpha=0.1):
                 if k == 0:
                     rd = 0.1 + 0.9 * rd / rd.max()
                 for i, j in enumerate(ls[:-1]):
-                    df[j] += zz[i] * r / qp[j][1]
+                    dif[j] += zz[i] * r / qp[j][1]
         for j in range(len(qp)):
-            qp[j][0] += df[j]
+            qp[j][0] += dif[j]
     return qp, qo
 
 
 def area(qp, qo, k):
     """面積"""
-    from more_itertools import pairwise
-
     pp = pref_points((qp, qo))[k]
     pp.append(pp[0])
     return abs(sum((i[0] - j[0]) * (i[1] + j[1]) for i, j in pairwise(pp))) / 2
