@@ -1,9 +1,14 @@
 import pickle
 import typing
+from importlib.metadata import metadata
 from itertools import chain, pairwise
 from pathlib import Path
 
 import numpy as np
+
+_package_metadata = metadata(__package__)
+__version__ = _package_metadata["Version"]
+__author__ = _package_metadata.get("Author-email", "")
 
 NUM_PREF: typing.Final[int] = 47
 
