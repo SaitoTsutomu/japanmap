@@ -1,5 +1,6 @@
-import pickle
+import json
 import typing
+from ast import literal_eval
 from importlib.metadata import metadata
 from itertools import chain, pairwise
 from pathlib import Path
@@ -39,7 +40,7 @@ def picture(dic=None, rate=1):
     from PIL.ImageColor import getrgb  # noqa: PLC0415
 
     pos = [
-        eval(s)
+        literal_eval(s)
         for s in """\
         0 15,15 52,6 57,9 54,19 52,9 52,19 52,24
         52,34 49,31 47,31 47,34 52,36 47,36 47,37 47,24 37,31 34,32
@@ -65,9 +66,9 @@ def pref_code(s):
 def get_data(move_hokkaido=False, move_okinawa=False, rough=False):  # noqa: FBT002
     """境界リストと県別の(隣接県,境界index)のリスト"""
 
-    pkl_file = "japan0.16.pkl" if rough else "japan.pkl"
-    with (Path(__file__).parent / pkl_file).open("rb") as fp:
-        qp, qo = pickle.load(fp)
+    json_file = "japan0.16.json" if rough else "japan.json"
+    with (Path(__file__).parent / json_file).open("rb") as fp:
+        qp, qo = json.load(fp)
         qp = [list(p) for p in qp]
     if move_hokkaido:
         for i in qo[0][0][1][:-1]:
@@ -80,14 +81,18 @@ def get_data(move_hokkaido=False, move_okinawa=False, rough=False):  # noqa: FBT
 
 def is_faced2sea(ip, qpqo=None):
     """県庁所在地を含むエリアが海に面するか"""
-    assert 1 <= ip <= NUM_PREF, f"Must be 1 <= ip <= {NUM_PREF}"
+    if not (1 <= ip <= NUM_PREF):
+        msg = f"Must be 1 <= ip <= {NUM_PREF}"
+        raise ValueError(msg)
     _, qo = qpqo or get_data()
     return any(i[0] == 0 for i in qo[ip - 1])
 
 
 def is_sandwiched2sea(ip, qpqo=None):
     """県庁所在地を含むエリアが海に挟まれるか"""
-    assert 1 <= ip <= NUM_PREF, f"Must be 1 <= ip <= {NUM_PREF}"
+    if not (1 <= ip <= NUM_PREF):
+        msg = f"Must be 1 <= ip <= {NUM_PREF}"
+        raise ValueError(msg)
     _, qo = qpqo or get_data()
     return sum(i[0] == 0 for i in qo[ip - 1]) > 1
 
@@ -96,7 +101,9 @@ def adjacent(ip=None, qpqo=None):
     """県庁所在地を含むエリアが隣接する県コード"""
     if ip is None:
         return [(i, j) for i in range(1, 48) for j in adjacent(i, qpqo)]
-    assert 1 <= ip <= NUM_PREF, f"Must be 1 <= ip <= {NUM_PREF}"
+    if not (1 <= ip <= NUM_PREF):
+        msg = f"Must be 1 <= ip <= {NUM_PREF}"
+        raise ValueError(msg)
     _, qo = qpqo or get_data()
     return sorted([cd for cd, _ in qo[ip - 1] if cd])
 
@@ -111,7 +118,9 @@ def pref_map(ips, cols=None, width=1, qpqo=None, *, rough=False, tostr=False, ra
     """ベクトルデータ(SVG)"""
     from IPython.display import SVG  # noqa: PLC0415
 
-    assert all(1 <= ip <= NUM_PREF for ip in ips), f"Must be 1 <= ip <= {NUM_PREF}"
+    if not all(1 <= ip <= NUM_PREF for ip in ips):
+        msg = f"Must be 1 <= ip <= {NUM_PREF}"
+        raise ValueError(msg)
     if cols is None:
         cols = "red fuchsia purple navy blue teal aqua green lime olive yellow orange orangered maroon".split()
     elif isinstance(cols, str) and cols == "gray":
@@ -148,7 +157,9 @@ def trans_area(target, qpqo=None, niter=20, alpha=0.1):
     qp, qo = qpqo or get_data(move_hokkaido=True, move_okinawa=True)
     qp = [[np.array(p[0]), p[1]] for p in qp]
     aa = [area(qp, qo, k) for k in range(len(qo))]
-    assert len(aa) == len(target), "Must be same size."
+    if len(aa) != len(target):
+        msg = "Must be same size."
+        raise ValueError(msg)
     target = np.array(target)
     target = target / target.mean() * aa
     for _ in range(niter):
