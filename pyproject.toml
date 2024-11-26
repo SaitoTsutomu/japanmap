@@ -84,7 +84,7 @@ select = [
   "SLOT", # flake8-slots https://docs.astral.sh/ruff/rules/#flake8-slots-slot
   "SIM", # flake8-simplify https://docs.astral.sh/ruff/rules/#flake8-simplify-sim
   "TID", # flake8-tidy-imports https://docs.astral.sh/ruff/rules/#flake8-tidy-imports-tid
-  "TCH", # flake8-type-checking https://docs.astral.sh/ruff/rules/#flake8-type-checking-tch
+  "TC", # flake8-type-checking https://docs.astral.sh/ruff/rules/#flake8-type-checking-tc
   "INT", # flake8-gettext https://docs.astral.sh/ruff/rules/#flake8-gettext-int
   "ARG", # flake8-unused-arguments https://docs.astral.sh/ruff/rules/#flake8-unused-arguments-arg
   "PTH", # flake8-use-pathlib https://docs.astral.sh/ruff/rules/#flake8-use-pathlib-pth
