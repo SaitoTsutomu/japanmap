@@ -232,7 +232,7 @@ def pref_map(ips, cols=None, width=1, qpqo=None, *, rough=False, tostr=False, ra
     ppp = np.array(list(chain(*pp)))
     mx, mn = np.nanmax(ppp, 0), np.nanmin(ppp, 0)
     mx = max(mx - mn)
-    _cnv = lambda p: "M" + " ".join(["L%g,%g" % (x, y) for x, y in (p - mn) / mx])[1:] + " Z"  # noqa: E731, UP031
+    _cnv = lambda p: "M" + " ".join(["L%g,%g" % (x, y) for x, y in (p - mn) / mx])[1:] + " Z"  # noqa: E731 RUF052 UP031
     s = "".join(f'<path fill="{cols[i % len(cols)]}" d="{_cnv(p)}"/>' for i, p in enumerate(pp))
     tpl = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 %d 1">%s</svg>'
     s = tpl % (width, s)
